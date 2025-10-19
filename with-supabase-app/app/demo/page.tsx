@@ -5,6 +5,7 @@ import { DashboardLayout } from "@/components/dashboard-layout";
 import { EventDetailModal } from "@/components/ui/event-detail-modal";
 import { GroupModal } from "@/components/group-modal";
 import { EventModal } from "@/components/event-modal";
+import { createGroup, CreateGroupData } from "@/api/objects/groups";
 
 // Mock data for demonstration
 const mockGroups = [
@@ -129,11 +130,25 @@ export default function DemoPage() {
     setIsGroupModalOpen(true);
   };
 
-  const handleCreateGroupSubmit = (groupData: any) => {
-    console.log("Creating group:", groupData);
-    // TODO: Implement actual group creation
-    alert("Group created successfully! (This is a demo)");
-    setIsGroupModalOpen(false);
+  const handleCreateGroupSubmit = async (groupData: any) => {
+    try {
+      console.log("Creating group:", groupData);
+      
+      const createData: CreateGroupData = {
+        name: groupData.name,
+        description: groupData.description || undefined,
+      };
+      
+      const newGroup = await createGroup(createData);
+      console.log("Group created successfully:", newGroup);
+      
+      setIsGroupModalOpen(false);
+      
+      // TODO: Refresh the groups list or add the new group to the state
+    } catch (error) {
+      console.error("Error creating group:", error);
+      alert("Failed to create group. Please try again.");
+    }
   };
 
   const handleEditGroupSubmit = (groupId: string, groupData: any, newAdmins: string[]) => {

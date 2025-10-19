@@ -20,8 +20,6 @@ interface Group {
   id: string;
   name: string;
   description?: string;
-  location?: string;  
-  privacy: 'public' | 'private';
   memberCount: number;
   adminCount: number;
   avatar?: string;
@@ -111,9 +109,6 @@ export function GroupHome({
                 <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                   {group.name}
                 </h1>
-                <Badge variant={group.privacy === 'public' ? 'default' : 'secondary'}>
-                  {group.privacy}
-                </Badge>
                 {group.isAdmin && (
                   <Badge variant="outline" className="flex items-center gap-1">
                     <Crown className="h-3 w-3" />
@@ -133,12 +128,6 @@ export function GroupHome({
                   <Users className="h-4 w-4" />
                   <span>{group.memberCount} members</span>
                 </div>
-                {group.location && (
-                  <div className="flex items-center gap-1">
-                    <MapPin className="h-4 w-4" />
-                    <span>{group.location}</span>
-                  </div>
-                )}
               </div>
             </div>
 

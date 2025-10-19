@@ -10,20 +10,15 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { 
   Users, 
-  MapPin, 
-  Globe, 
-  Lock, 
-  Unlock,
   Crown,
   UserPlus
 } from "lucide-react";
+import { createGroup, CreateGroupData } from "@/api/objects/groups";
 
 interface Group {
   id: string;
   name: string;
   description?: string;
-  location?: string;
-  privacy: 'public' | 'private';
   memberCount: number;
   adminCount: number;
   avatar?: string;
@@ -62,8 +57,6 @@ export function GroupModal({
   const [formData, setFormData] = useState({
     name: "",
     description: "",
-    location: "",
-    privacy: "public" as "public" | "private"
   });
   const [selectedAdmins, setSelectedAdmins] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -75,8 +68,6 @@ export function GroupModal({
       setFormData({
         name: group.name || "",
         description: group.description || "",
-        location: group.location || "",
-        privacy: group.privacy || "public"
       });
       
       // Set current admins as selected
@@ -87,8 +78,6 @@ export function GroupModal({
       setFormData({
         name: "",
         description: "",
-        location: "",
-        privacy: "public"
       });
       setSelectedAdmins([]);
     }
@@ -117,6 +106,16 @@ export function GroupModal({
 
     try {
       if (mode === "create") {
+        // Use the API to create the group
+        const groupData: CreateGroupData = {
+          name: formData.name,
+          description: formData.description || undefined,
+        };
+        
+        const newGroup = await createGroup(groupData);
+        console.log("Group created successfully:", newGroup);
+        
+        // Call the parent handler if provided
         await onCreateGroup?.(formData);
       } else if (group) {
         await onEditGroup?.(group.id, formData, selectedAdmins);
@@ -133,8 +132,6 @@ export function GroupModal({
     setFormData({
       name: "",
       description: "",
-      location: "",
-      privacy: "public"
     });
     setSelectedAdmins([]);
     setError(null);
@@ -153,12 +150,7 @@ export function GroupModal({
       className="max-w-2xl"
     >
       <form onSubmit={handleSubmit} className="p-6 space-y-6">
-        {/* Basic Information */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-            Basic Information
-          </h3>
-          
+        <div className="space-y-4"> 
           <div>
             <Label htmlFor="name">Group Name *</Label>
             <Input
@@ -185,88 +177,6 @@ export function GroupModal({
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="location">Location</Label>
-              <div className="relative">
-                <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                  id="location"
-                  value={formData.location}
-                  onChange={(e) => handleInputChange("location", e.target.value)}
-                  placeholder="City, State"
-                  disabled={isLoading}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Privacy Settings */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-            Privacy Settings
-          </h3>
-          
-          <div className="space-y-3">
-            <div 
-              className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-                formData.privacy === "public" 
-                  ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20" 
-                  : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
-              }`}
-              onClick={() => !isLoading && handleInputChange("privacy", "public")}
-            >
-              <div className="flex items-center gap-3">
-                <div className={`w-4 h-4 rounded-full border-2 ${
-                  formData.privacy === "public" 
-                    ? "border-blue-500 bg-blue-500" 
-                    : "border-gray-300 dark:border-gray-600"
-                }`}>
-                  {formData.privacy === "public" && (
-                    <div className="w-full h-full rounded-full bg-white scale-50"></div>
-                  )}
-                </div>
-                <Unlock className="h-5 w-5 text-gray-500" />
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <h4 className="font-medium text-gray-900 dark:text-white">Public</h4>
-                    <Badge variant="default">Recommended</Badge>
-                  </div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Anyone can discover and join your group
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div 
-              className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-                formData.privacy === "private" 
-                  ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20" 
-                  : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
-              }`}
-              onClick={() => !isLoading && handleInputChange("privacy", "private")}
-            >
-              <div className="flex items-center gap-3">
-                <div className={`w-4 h-4 rounded-full border-2 ${
-                  formData.privacy === "private" 
-                    ? "border-blue-500 bg-blue-500" 
-                    : "border-gray-300 dark:border-gray-600"
-                }`}>
-                  {formData.privacy === "private" && (
-                    <div className="w-full h-full rounded-full bg-white scale-50"></div>
-                  )}
-                </div>
-                <Lock className="h-5 w-5 text-gray-500" />
-                <div className="flex-1">
-                  <h4 className="font-medium text-gray-900 dark:text-white">Private</h4>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Only invited members can join your group
-                  </p>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
 

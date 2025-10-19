@@ -53,8 +53,6 @@ interface DashboardLayoutProps {
   groups: Group[];
   selectedGroup?: Group & {
     description?: string;
-    location?: string;    
-    privacy: 'public' | 'private';
     adminCount: number;
     avatar?: string;
     coverImage?: string;
