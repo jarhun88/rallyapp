@@ -13,7 +13,7 @@ import {
   Crown,
   UserPlus
 } from "lucide-react";
-import { createGroup, CreateGroupData } from "@/api/objects/groups";
+import { CreateGroupData } from "@/api/objects/groups";
 
 interface Group {
   id: string;
@@ -106,16 +106,7 @@ export function GroupModal({
 
     try {
       if (mode === "create") {
-        // Use the API to create the group
-        const groupData: CreateGroupData = {
-          name: formData.name,
-          description: formData.description || undefined,
-        };
-        
-        const newGroup = await createGroup(groupData);
-        console.log("Group created successfully:", newGroup);
-        
-        // Call the parent handler if provided
+        // Call the parent handler to create the group
         await onCreateGroup?.(formData);
       } else if (group) {
         await onEditGroup?.(group.id, formData, selectedAdmins);
