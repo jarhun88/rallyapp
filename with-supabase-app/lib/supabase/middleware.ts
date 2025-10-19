@@ -10,8 +10,11 @@ export async function updateSession(request: NextRequest) {
   // If the env vars are not set, skip middleware check. You can remove this
   // once you setup the project.
   if (!hasEnvVars) {
+    console.log("Middleware - Environment variables not set, skipping auth check");
     return supabaseResponse;
   }
+  
+  console.log("Middleware - Environment variables found, proceeding with auth check");
 
   // With Fluid compute, don't put this client in a global environment
   // variable. Always create a new one on each request.
@@ -47,13 +50,17 @@ export async function updateSession(request: NextRequest) {
   const { data } = await supabase.auth.getClaims();
   const user = data?.claims;
 
+  // Debug: Log the authentication status
+  console.log("Middleware - Path:", request.nextUrl.pathname, "User:", !!user);
+
   // Define public routes that don't require authentication
-  const publicRoutes = ["/", "/login", "/demo"];
+  const publicRoutes = ["/", "/login", "/demo", "/home"];
   const isPublicRoute = publicRoutes.includes(request.nextUrl.pathname) || 
                        request.nextUrl.pathname.startsWith("/auth");
 
   // If user is not authenticated and trying to access protected route
   if (!user && !isPublicRoute) {
+    console.log("Middleware - No user found, redirecting to login");
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
