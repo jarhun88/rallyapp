@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { EventDetailModal } from "@/components/ui/event-detail-modal";
+import { GroupModal } from "@/components/group-modal";
 
 // Mock data for demonstration
 const mockGroups = [
@@ -110,13 +111,35 @@ const mockEvents = [
 export default function DemoPage() {
   const [selectedGroupId, setSelectedGroupId] = useState<string>("1");
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
+  const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
+  const [groupModalMode, setGroupModalMode] = useState<"create" | "edit">("create");
 
   const handleGroupSelect = (groupId: string) => {
     setSelectedGroupId(groupId);
   };
 
   const handleCreateGroup = () => {
-    alert("Create group functionality will be implemented soon!");
+    setGroupModalMode("create");
+    setIsGroupModalOpen(true);
+  };
+
+  const handleEditGroup = () => {
+    setGroupModalMode("edit");
+    setIsGroupModalOpen(true);
+  };
+
+  const handleCreateGroupSubmit = (groupData: any) => {
+    console.log("Creating group:", groupData);
+    // TODO: Implement actual group creation
+    alert("Group created successfully! (This is a demo)");
+    setIsGroupModalOpen(false);
+  };
+
+  const handleEditGroupSubmit = (groupId: string, groupData: any, newAdmins: string[]) => {
+    console.log("Editing group:", groupId, groupData, newAdmins);
+    // TODO: Implement actual group editing
+    alert("Group updated successfully! (This is a demo)");
+    setIsGroupModalOpen(false);
   };
 
   const handleJoinEvent = (eventId: string) => {
@@ -133,10 +156,6 @@ export default function DemoPage() {
 
   const handleCreateEvent = () => {
     alert("Create event functionality will be implemented soon!");
-  };
-
-  const handleEditGroup = () => {
-    alert("Edit group functionality will be implemented soon!");
   };
 
   const handleRemoveParticipant = (eventId: string, participantId: string) => {
@@ -185,12 +204,41 @@ export default function DemoPage() {
   ];
 
   const selectedEvent = selectedEventId ? mockEvents.find(e => e.id === selectedEventId) : null;
+  const selectedGroup = selectedGroupId === "1" ? mockSelectedGroup : undefined;
+
+  // Mock members data for the selected group
+  const mockMembers = [
+    {
+      id: "1",
+      name: "John Doe",
+      email: "john@example.com",
+      avatar: undefined,
+      isAdmin: false,
+      joinedAt: "2024-01-15T10:00:00Z",
+    },
+    {
+      id: "2",
+      name: "Jane Smith",
+      email: "jane@example.com",
+      avatar: undefined,
+      isAdmin: true,
+      joinedAt: "2024-01-16T14:30:00Z",
+    },
+    {
+      id: "3",
+      name: "Bob Johnson",
+      email: "bob@example.com",
+      avatar: undefined,
+      isAdmin: false,
+      joinedAt: "2024-01-17T09:15:00Z",
+    },
+  ];
 
   return (
     <>
       <DashboardLayout
         groups={mockGroups}
-        selectedGroup={selectedGroupId === "1" ? mockSelectedGroup : undefined}
+        selectedGroup={selectedGroup}
         events={mockEvents}
         onGroupSelect={handleGroupSelect}
         onCreateGroup={handleCreateGroup}
@@ -218,6 +266,16 @@ export default function DemoPage() {
           isAdmin={mockSelectedGroup.isAdmin}
         />
       )}
+
+      <GroupModal
+        isOpen={isGroupModalOpen}
+        onClose={() => setIsGroupModalOpen(false)}
+        mode={groupModalMode}
+        group={groupModalMode === "edit" ? selectedGroup : undefined}
+        members={groupModalMode === "edit" ? mockMembers : []}
+        onCreateGroup={handleCreateGroupSubmit}
+        onEditGroup={handleEditGroupSubmit}
+      />
     </>
   );
 }
