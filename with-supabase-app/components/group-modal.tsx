@@ -23,7 +23,6 @@ interface Group {
   name: string;
   description?: string;
   location?: string;
-  website?: string;
   privacy: 'public' | 'private';
   memberCount: number;
   adminCount: number;
@@ -64,7 +63,6 @@ export function GroupModal({
     name: "",
     description: "",
     location: "",
-    website: "",
     privacy: "public" as "public" | "private"
   });
   const [selectedAdmins, setSelectedAdmins] = useState<string[]>([]);
@@ -78,7 +76,6 @@ export function GroupModal({
         name: group.name || "",
         description: group.description || "",
         location: group.location || "",
-        website: group.website || "",
         privacy: group.privacy || "public"
       });
       
@@ -91,7 +88,6 @@ export function GroupModal({
         name: "",
         description: "",
         location: "",
-        website: "",
         privacy: "public"
       });
       setSelectedAdmins([]);
@@ -138,7 +134,6 @@ export function GroupModal({
       name: "",
       description: "",
       location: "",
-      website: "",
       privacy: "public"
     });
     setSelectedAdmins([]);
@@ -199,22 +194,6 @@ export function GroupModal({
                   value={formData.location}
                   onChange={(e) => handleInputChange("location", e.target.value)}
                   placeholder="City, State"
-                  disabled={isLoading}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="website">Website</Label>
-              <div className="relative">
-                <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                  id="website"
-                  type="url"
-                  value={formData.website}
-                  onChange={(e) => handleInputChange("website", e.target.value)}
-                  placeholder="https://example.com"
                   disabled={isLoading}
                   className="pl-10"
                 />

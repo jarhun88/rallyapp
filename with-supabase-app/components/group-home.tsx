@@ -20,8 +20,7 @@ interface Group {
   id: string;
   name: string;
   description?: string;
-  location?: string;
-  website?: string;
+  location?: string;  
   privacy: 'public' | 'private';
   memberCount: number;
   adminCount: number;
@@ -138,19 +137,6 @@ export function GroupHome({
                   <div className="flex items-center gap-1">
                     <MapPin className="h-4 w-4" />
                     <span>{group.location}</span>
-                  </div>
-                )}
-                {group.website && (
-                  <div className="flex items-center gap-1">
-                    <Globe className="h-4 w-4" />
-                    <a 
-                      href={group.website} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="hover:text-blue-600 dark:hover:text-blue-400"
-                    >
-                      Website
-                    </a>
                   </div>
                 )}
               </div>
