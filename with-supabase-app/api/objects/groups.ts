@@ -24,7 +24,8 @@ export async function createGroup(groupData: CreateGroupData): Promise<Group> {
   
   try {
     const { data, error } = await supabase
-      .from('objects.groups')
+      .schema('objects')
+      .from('groups')
       .insert({
         name: groupData.name,
         description: groupData.description,
@@ -54,7 +55,8 @@ export async function readGroup(groupId: string): Promise<Group | null> {
   
   try {
     const { data, error } = await supabase
-      .from('objects.groups')
+      .schema('objects')
+      .from('groups')
       .select('*')
       .eq('id', groupId)
       .single();
@@ -89,17 +91,19 @@ export async function getGroups(
     const offset = (page - 1) * limit;
 
     // Get total count
-    const { count, error: countError } = await supabase
-      .from('objects.groups')
-      .select('*', { count: 'exact', head: true });
+    // const { count, error: countError } = await supabase
+    //   .schema('objects')
+    //   .from('groups')
+    //   .select('*', { count: 'exact', head: true });
 
-    if (countError) {
-      throw new Error(`Failed to get groups count: ${countError.message}`);
-    }
+    // if (countError) {
+    //   throw new Error(`Failed to get groups count: ${countError.message}`);
+    // }
 
     // Get paginated data
     const { data, error } = await supabase
-      .from('objects.groups')
+      .schema('objects')
+      .from('groups')
       .select('*')
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
@@ -115,7 +119,7 @@ export async function getGroups(
         name: item.name,
         description: item.description,
       })),
-      total: count || 0,
+      total: data.length,
       page,
       limit,
     };
@@ -131,7 +135,8 @@ export async function searchGroups(query: string): Promise<Group[]> {
   
   try {
     const { data, error } = await supabase
-      .from('objects.groups')
+      .schema('objects')
+      .from('groups')
       .select('*')
       .or(`name.ilike.%${query}%,description.ilike.%${query}%`)
       .order('created_at', { ascending: false });
@@ -158,7 +163,8 @@ export async function updateGroup(groupId: string, updateData: UpdateGroupData):
   
   try {
     const { data, error } = await supabase
-      .from('objects.groups')
+      .schema('objects')
+      .from('groups')
       .update({
         name: updateData.name,
         description: updateData.description,
@@ -189,7 +195,8 @@ export async function deleteGroup(groupId: string): Promise<void> {
   
   try {
     const { error } = await supabase
-      .from('objects.groups')
+      .schema('objects')
+      .from('groups')
       .delete()
       .eq('id', groupId);
 

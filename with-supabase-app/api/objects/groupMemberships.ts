@@ -18,7 +18,8 @@ export async function createGroupMembership(membershipData: CreateGroupMembershi
   
   try {
     const { data, error } = await supabase
-      .from('objects.groupMemberships')
+      .schema('objects')
+      .from('group_memberships')
       .insert({
         group_id: membershipData.group_id,
         user_id: membershipData.user_id,
@@ -47,7 +48,8 @@ export async function getGroupMembershipsByGroup(groupId: string): Promise<Group
   
   try {
     const { data, error } = await supabase
-      .from('objects.groupMemberships')
+      .schema('objects')
+      .from('group_memberships')
       .select('*')
       .eq('group_id', groupId)
       .order('created_at', { ascending: true });
@@ -73,7 +75,8 @@ export async function getUserGroupMemberships(userId: string): Promise<GroupMemb
   
   try {
     const { data, error } = await supabase
-      .from('objects.groupMemberships')
+      .schema('objects')
+      .from('group_memberships')
       .select('*')
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
@@ -99,7 +102,8 @@ export async function deleteGroupMembership(userId: string, groupId: string): Pr
   
   try {
     const { error } = await supabase
-      .from('objects.groupMemberships')
+      .schema('objects')
+      .from('group_memberships')
       .delete()
       .eq('user_id', userId)
       .eq('group_id', groupId);
@@ -119,7 +123,8 @@ export async function isUserMemberOfGroup(userId: string, groupId: string): Prom
   
   try {
     const { data, error } = await supabase
-      .from('objects.groupMemberships')
+      .schema('objects')
+      .from('group_memberships')
       .select('user_id')
       .eq('user_id', userId)
       .eq('group_id', groupId)

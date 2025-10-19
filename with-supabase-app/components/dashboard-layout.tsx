@@ -97,7 +97,11 @@ export function DashboardLayout({
             <Plus className="h-4 w-4 mr-2" />
             Create Your First Group
           </Button>
-          <Button variant="outline" className="w-full">
+          <Button 
+            variant="outline" 
+            className="w-full"
+            onClick={() => window.location.href = '/discover'}
+          >
             <Search className="h-4 w-4 mr-2" />
             Discover Groups
           </Button>
@@ -134,7 +138,12 @@ export function DashboardLayout({
             </div>
             
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="sm">
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => window.location.href = '/discover'}
+                title="Discover Groups"
+              >
                 <Search className="h-4 w-4" />
               </Button>
               <Button variant="ghost" size="sm">
