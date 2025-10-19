@@ -91,7 +91,7 @@ export function SignUpForm({
               </div>
               <div className="grid gap-2">
                 <div className="flex items-center">
-                  <Label htmlFor="repeat-password">Repeat Password</Label>
+                  <Label htmlFor="repeat-password">Confirm Password</Label>
                 </div>
                 <Input
                   id="repeat-password"
