@@ -4,6 +4,7 @@ import { useState } from "react";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { EventDetailModal } from "@/components/ui/event-detail-modal";
 import { GroupModal } from "@/components/group-modal";
+import { EventModal } from "@/components/event-modal";
 
 // Mock data for demonstration
 const mockGroups = [
@@ -112,6 +113,7 @@ export default function DemoPage() {
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
   const [groupModalMode, setGroupModalMode] = useState<"create" | "edit">("create");
+  const [isEventModalOpen, setIsEventModalOpen] = useState(false);
 
   const handleGroupSelect = (groupId: string) => {
     setSelectedGroupId(groupId);
@@ -142,11 +144,15 @@ export default function DemoPage() {
   };
 
   const handleJoinEvent = (eventId: string) => {
-    alert(`Join event ${eventId} - functionality will be implemented soon!`);
+    console.log("Joining event:", eventId);
+    // TODO: Implement actual join event functionality
+    alert(`Successfully joined event ${eventId}! (This is a demo)`);
   };
 
   const handleLeaveEvent = (eventId: string) => {
-    alert(`Leave event ${eventId} - functionality will be implemented soon!`);
+    console.log("Leaving event:", eventId);
+    // TODO: Implement actual leave event functionality
+    alert(`Successfully left event ${eventId}! (This is a demo)`);
   };
 
   const handleViewEventDetails = (eventId: string) => {
@@ -154,15 +160,26 @@ export default function DemoPage() {
   };
 
   const handleCreateEvent = () => {
-    alert("Create event functionality will be implemented soon!");
+    setIsEventModalOpen(true);
+  };
+
+  const handleCreateEventSubmit = (eventData: any) => {
+    console.log("Creating event:", eventData);
+    // TODO: Implement actual event creation
+    alert("Event created successfully! (This is a demo)");
+    setIsEventModalOpen(false);
   };
 
   const handleRemoveParticipant = (eventId: string, participantId: string) => {
-    alert(`Remove participant ${participantId} from event ${eventId} - functionality will be implemented soon!`);
+    console.log("Removing participant:", participantId, "from event:", eventId);
+    // TODO: Implement actual remove participant functionality
+    alert(`Successfully removed participant from event ${eventId}! (This is a demo)`);
   };
 
   const handleMoveFromWaitlist = (eventId: string, participantId: string) => {
-    alert(`Move participant ${participantId} from waitlist for event ${eventId} - functionality will be implemented soon!`);
+    console.log("Moving participant from waitlist:", participantId, "for event:", eventId);
+    // TODO: Implement actual move from waitlist functionality
+    alert(`Successfully moved participant from waitlist to event ${eventId}! (This is a demo)`);
   };
 
   // Mock participants and waitlist data
@@ -274,6 +291,13 @@ export default function DemoPage() {
         members={groupModalMode === "edit" ? mockMembers : []}
         onCreateGroup={handleCreateGroupSubmit}
         onEditGroup={handleEditGroupSubmit}
+      />
+
+      <EventModal
+        isOpen={isEventModalOpen}
+        onClose={() => setIsEventModalOpen(false)}
+        members={mockMembers}
+        onCreateEvent={handleCreateEventSubmit}
       />
     </>
   );

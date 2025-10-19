@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -76,6 +76,24 @@ export function EventDetailModal({
 }: EventDetailModalProps) {
   const [activeTab, setActiveTab] = useState<'details' | 'participants' | 'waitlist'>('details');
 
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener("keydown", handleEscape);
+      document.body.style.overflow = "hidden";
+    }
+
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+      document.body.style.overflow = "unset";
+    };
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const formatDate = (dateString: string) => {
@@ -133,14 +151,6 @@ export function EventDetailModal({
             {event.status}
           </Badge>
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onClose}
-          className="flex-shrink-0"
-        >
-          <X className="h-4 w-4" />
-        </Button>
       </div>
 
       {/* Event Description */}
@@ -400,7 +410,22 @@ export function EventDetailModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <Card className="w-full max-w-2xl max-h-[90vh] overflow-hidden">
+      <div className="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
+        {/* Header with Close Button */}
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+            Event Details
+          </h2>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onClose}
+            className="flex-shrink-0"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+
         <div className="flex flex-col h-full">
           {/* Tabs */}
           <div className="border-b border-gray-200 dark:border-gray-700">
@@ -433,7 +458,7 @@ export function EventDetailModal({
             {activeTab === 'waitlist' && renderWaitlistTab()}
           </div>
         </div>
-      </Card>
+      </div>
     </div>
   );
 }

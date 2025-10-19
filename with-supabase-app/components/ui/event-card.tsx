@@ -8,8 +8,7 @@ import {
   MapPin, 
   Users, 
   DollarSign, 
-  Clock,
-  ChevronRight
+  Clock
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -195,9 +194,9 @@ export function EventCard({
             size="sm"
             variant="ghost"
             onClick={() => onViewDetails?.(event.id)}
-            className="px-2"
+            className="px-3"
           >
-            <ChevronRight className="h-4 w-4" />
+            {isAdmin ? "Edit" : "View"}
           </Button>
         </div>
       </div>

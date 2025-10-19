@@ -5,6 +5,8 @@ import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { EventDetailModal } from "@/components/ui/event-detail-modal";
+import { GroupModal } from "@/components/group-modal";
+import { EventModal } from "@/components/event-modal";
 
 // Mock data for demonstration
 const mockGroups = [
@@ -111,6 +113,9 @@ const mockEvents = [
 export default function HomePage() {
   const [selectedGroupId, setSelectedGroupId] = useState<string>("1");
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
+  const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
+  const [groupModalMode, setGroupModalMode] = useState<"create" | "edit">("create");
+  const [isEventModalOpen, setIsEventModalOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
@@ -135,15 +140,39 @@ export default function HomePage() {
   };
 
   const handleCreateGroup = () => {
-    alert("Create group functionality will be implemented soon!");
+    setGroupModalMode("create");
+    setIsGroupModalOpen(true);
+  };
+
+  const handleEditGroup = () => {
+    setGroupModalMode("edit");
+    setIsGroupModalOpen(true);
+  };
+
+  const handleCreateGroupSubmit = (groupData: any) => {
+    console.log("Creating group:", groupData);
+    // TODO: Implement actual group creation
+    alert("Group created successfully! (This is a demo)");
+    setIsGroupModalOpen(false);
+  };
+
+  const handleEditGroupSubmit = (groupId: string, groupData: any, newAdmins: string[]) => {
+    console.log("Editing group:", groupId, groupData, newAdmins);
+    // TODO: Implement actual group editing
+    alert("Group updated successfully! (This is a demo)");
+    setIsGroupModalOpen(false);
   };
 
   const handleJoinEvent = (eventId: string) => {
-    alert(`Join event ${eventId} - functionality will be implemented soon!`);
+    console.log("Joining event:", eventId);
+    // TODO: Implement actual join event functionality
+    alert(`Successfully joined event ${eventId}! (This is a demo)`);
   };
 
   const handleLeaveEvent = (eventId: string) => {
-    alert(`Leave event ${eventId} - functionality will be implemented soon!`);
+    console.log("Leaving event:", eventId);
+    // TODO: Implement actual leave event functionality
+    alert(`Successfully left event ${eventId}! (This is a demo)`);
   };
 
   const handleViewEventDetails = (eventId: string) => {
@@ -151,19 +180,26 @@ export default function HomePage() {
   };
 
   const handleCreateEvent = () => {
-    alert("Create event functionality will be implemented soon!");
+    setIsEventModalOpen(true);
   };
 
-  const handleEditGroup = () => {
-    alert("Edit group functionality will be implemented soon!");
+  const handleCreateEventSubmit = (eventData: any) => {
+    console.log("Creating event:", eventData);
+    // TODO: Implement actual event creation
+    alert("Event created successfully! (This is a demo)");
+    setIsEventModalOpen(false);
   };
 
   const handleRemoveParticipant = (eventId: string, participantId: string) => {
-    alert(`Remove participant ${participantId} from event ${eventId} - functionality will be implemented soon!`);
+    console.log("Removing participant:", participantId, "from event:", eventId);
+    // TODO: Implement actual remove participant functionality
+    alert(`Successfully removed participant from event ${eventId}! (This is a demo)`);
   };
 
   const handleMoveFromWaitlist = (eventId: string, participantId: string) => {
-    alert(`Move participant ${participantId} from waitlist for event ${eventId} - functionality will be implemented soon!`);
+    console.log("Moving participant from waitlist:", participantId, "for event:", eventId);
+    // TODO: Implement actual move from waitlist functionality
+    alert(`Successfully moved participant from waitlist to event ${eventId}! (This is a demo)`);
   };
 
   // Mock participants and waitlist data
@@ -219,12 +255,41 @@ export default function HomePage() {
   }
 
   const selectedEvent = selectedEventId ? mockEvents.find(e => e.id === selectedEventId) : null;
+  const selectedGroup = selectedGroupId === "1" ? mockSelectedGroup : undefined;
+
+  // Mock members data for the selected group
+  const mockMembers = [
+    {
+      id: "1",
+      name: "John Doe",
+      email: "john@example.com",
+      avatar: undefined,
+      isAdmin: false,
+      joinedAt: "2024-01-15T10:00:00Z",
+    },
+    {
+      id: "2",
+      name: "Jane Smith",
+      email: "jane@example.com",
+      avatar: undefined,
+      isAdmin: true,
+      joinedAt: "2024-01-16T14:30:00Z",
+    },
+    {
+      id: "3",
+      name: "Bob Johnson",
+      email: "bob@example.com",
+      avatar: undefined,
+      isAdmin: false,
+      joinedAt: "2024-01-17T09:15:00Z",
+    },
+  ];
 
   return (
     <>
       <DashboardLayout
         groups={mockGroups}
-        selectedGroup={selectedGroupId === "1" ? mockSelectedGroup : undefined}
+        selectedGroup={selectedGroup}
         events={mockEvents}
         onGroupSelect={handleGroupSelect}
         onCreateGroup={handleCreateGroup}
@@ -252,6 +317,23 @@ export default function HomePage() {
           isAdmin={mockSelectedGroup.isAdmin}
         />
       )}
+
+      <GroupModal
+        isOpen={isGroupModalOpen}
+        onClose={() => setIsGroupModalOpen(false)}
+        mode={groupModalMode}
+        group={groupModalMode === "edit" ? selectedGroup : undefined}
+        members={groupModalMode === "edit" ? mockMembers : []}
+        onCreateGroup={handleCreateGroupSubmit}
+        onEditGroup={handleEditGroupSubmit}
+      />
+
+      <EventModal
+        isOpen={isEventModalOpen}
+        onClose={() => setIsEventModalOpen(false)}
+        members={mockMembers}
+        onCreateEvent={handleCreateEventSubmit}
+      />
     </>
   );
 }
