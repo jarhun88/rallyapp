@@ -5,7 +5,8 @@ import { DashboardLayout } from "@/components/dashboard-layout";
 import { EventDetailModal } from "@/components/ui/event-detail-modal";
 import { GroupModal } from "@/components/group-modal";
 import { EventModal } from "@/components/event-modal";
-import { createGroup, CreateGroupData } from "@/api/objects/groups";
+import { createGroup, CreateGroupData, getGroups } from "@/api/objects/groups";
+import { getUserGroupMemberships, getGroupMemberCounts } from "@/api/objects/groupMemberships";
 
 // Mock data for demonstration
 const mockGroups = [
@@ -110,11 +111,24 @@ const mockEvents = [
 ];
 
 export default function DemoPage() {
-  const [selectedGroupId, setSelectedGroupId] = useState<string>("1");
+  const [selectedGroupId, setSelectedGroupId] = useState<string>("");
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
   const [groupModalMode, setGroupModalMode] = useState<"create" | "edit">("create");
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
+  const [groups, setGroups] = useState<any[]>([]);
+  const [userMemberships, setUserMemberships] = useState<string[]>([]);
+  const [memberCounts, setMemberCounts] = useState<Record<string, number>>({});
+  const [loading, setLoading] = useState(true);
+
+  // Transform groups data for sidebar
+  const sidebarGroups = groups.map(group => ({
+    id: group.id,
+    name: group.name,
+    memberCount: memberCounts[group.id] || 0,
+    avatar: undefined,
+    isAdmin: true, // For now, assume user is admin of their groups
+  }));
 
   const handleGroupSelect = (groupId: string) => {
     setSelectedGroupId(groupId);
@@ -235,7 +249,7 @@ export default function DemoPage() {
   ];
 
   const selectedEvent = selectedEventId ? mockEvents.find(e => e.id === selectedEventId) : null;
-  const selectedGroup = selectedGroupId === "1" ? mockSelectedGroup : undefined;
+  const selectedGroup = groups.find(g => g.id === selectedGroupId);
 
   // Mock members data for the selected group
   const mockMembers = [
@@ -268,7 +282,7 @@ export default function DemoPage() {
   return (
     <>
       <DashboardLayout
-        groups={mockGroups}
+        groups={sidebarGroups}
         selectedGroup={selectedGroup}
         events={mockEvents}
         onGroupSelect={handleGroupSelect}

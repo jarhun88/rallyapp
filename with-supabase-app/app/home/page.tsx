@@ -7,7 +7,8 @@ import { DashboardLayout } from "@/components/dashboard-layout";
 import { EventDetailModal } from "@/components/ui/event-detail-modal";
 import { GroupModal } from "@/components/group-modal";
 import { EventModal } from "@/components/event-modal";
-import { CreateGroupData, createGroupWithAdmin } from "@/api/objects/groups";
+import { CreateGroupData, createGroupWithAdmin, getGroups } from "@/api/objects/groups";
+import { getUserGroupMemberships, getGroupMemberCounts } from "@/api/objects/groupMemberships";
 
 // Mock data for demonstration
 const mockGroups = [
@@ -110,33 +111,73 @@ const mockEvents = [
 ];
 
 export default function HomePage() {
-  const [selectedGroupId, setSelectedGroupId] = useState<string>("1");
+  const [selectedGroupId, setSelectedGroupId] = useState<string>("");
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
   const [groupModalMode, setGroupModalMode] = useState<"create" | "edit">("create");
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [groups, setGroups] = useState<any[]>([]);
+  const [userMemberships, setUserMemberships] = useState<string[]>([]);
+  const [memberCounts, setMemberCounts] = useState<Record<string, number>>({});
   const router = useRouter();
   const supabase = createClient();
 
   useEffect(() => {
-    const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        router.push("/login");
-        return;
+    const loadData = async () => {
+      try {
+        // Get user
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          router.push("/login");
+          return;
+        }
+        setUser(user);
+
+        // Fetch user's group memberships
+        const memberships = await getUserGroupMemberships(user.id);
+        const membershipIds = memberships.map(m => m.group_id);
+        setUserMemberships(membershipIds);
+
+        // Fetch groups that user is a member of
+        if (membershipIds.length > 0) {
+          const groupsData = await getGroups(1, 50);
+          const userGroups = groupsData.groups.filter(group => membershipIds.includes(group.id));
+          setGroups(userGroups);
+
+          // Set first group as selected if none selected
+          if (!selectedGroupId && userGroups.length > 0) {
+            setSelectedGroupId(userGroups[0].id);
+          }
+
+          // Fetch member counts for user's groups
+          const counts = await getGroupMemberCounts(membershipIds);
+          setMemberCounts(counts);
+        }
+
+        setLoading(false);
+      } catch (error) {
+        console.error('Error loading data:', error);
+        setLoading(false);
       }
-      setUser(user);
-      setLoading(false);
     };
 
-    getUser();
-  }, [router, supabase.auth]);
+    loadData();
+  }, [router, supabase.auth, selectedGroupId]);
 
   const handleGroupSelect = (groupId: string) => {
     setSelectedGroupId(groupId);
   };
+
+  // Transform groups data for sidebar
+  const sidebarGroups = groups.map(group => ({
+    id: group.id,
+    name: group.name,
+    memberCount: memberCounts[group.id] || 0,
+    avatar: undefined,
+    isAdmin: true, // For now, assume user is admin of their groups
+  }));
 
   const handleCreateGroup = () => {
     setGroupModalMode("create");
@@ -162,7 +203,23 @@ export default function HomePage() {
       
       setIsGroupModalOpen(false);
       
-      // TODO: Refresh the groups list or add the new group to the state
+      // Refresh the groups list
+      const memberships = await getUserGroupMemberships(user.id);
+      const membershipIds = memberships.map(m => m.group_id);
+      setUserMemberships(membershipIds);
+
+      if (membershipIds.length > 0) {
+        const groupsData = await getGroups(1, 50);
+        const userGroups = groupsData.groups.filter(group => membershipIds.includes(group.id));
+        setGroups(userGroups);
+
+        // Select the new group
+        setSelectedGroupId(newGroup.id);
+
+        // Fetch member counts
+        const counts = await getGroupMemberCounts(membershipIds);
+        setMemberCounts(counts);
+      }
     } catch (error) {
       console.error("Error creating group:", error);
       alert("Failed to create group. Please try again.");
@@ -268,7 +325,7 @@ export default function HomePage() {
   }
 
   const selectedEvent = selectedEventId ? mockEvents.find(e => e.id === selectedEventId) : null;
-  const selectedGroup = selectedGroupId === "1" ? mockSelectedGroup : undefined;
+  const selectedGroup = groups.find(g => g.id === selectedGroupId);
 
   // Mock members data for the selected group
   const mockMembers = [
@@ -301,7 +358,7 @@ export default function HomePage() {
   return (
     <>
       <DashboardLayout
-        groups={mockGroups}
+        groups={sidebarGroups}
         selectedGroup={selectedGroup}
         events={mockEvents}
         onGroupSelect={handleGroupSelect}
