@@ -226,7 +226,6 @@ export default function DiscoverPage() {
         [groupId]: Math.max(0, (prev[groupId] || 1) - 1)
       }));
       
-      alert("Successfully left the group!");
     } catch (error) {
       console.error('Error leaving group:', error);
       alert("Failed to leave group. Please try again.");
