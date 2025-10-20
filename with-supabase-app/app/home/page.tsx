@@ -7,7 +7,7 @@ import { DashboardLayout } from "@/components/dashboard-layout";
 import { EventDetailModal } from "@/components/ui/event-detail-modal";
 import { GroupModal } from "@/components/group-modal";
 import { EventModal } from "@/components/event-modal";
-import { createGroup, CreateGroupData } from "@/api/objects/groups";
+import { CreateGroupData, createGroupWithAdmin } from "@/api/objects/groups";
 
 // Mock data for demonstration
 const mockGroups = [
@@ -157,7 +157,7 @@ export default function HomePage() {
         description: groupData.description || undefined,
       };
       
-      const newGroup = await createGroup(createData);
+      const newGroup = await createGroupWithAdmin(createData.name, createData.description || "", user.id);
       console.log("Group created successfully:", newGroup);
       
       setIsGroupModalOpen(false);

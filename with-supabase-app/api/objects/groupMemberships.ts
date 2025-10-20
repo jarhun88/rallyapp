@@ -69,6 +69,58 @@ export async function getGroupMembershipsByGroup(groupId: string): Promise<Group
   }
 }
 
+// Get member count for a specific group
+export async function getGroupMemberCount(groupId: string): Promise<number> {
+  const supabase = createClient();
+  
+  try {
+    const { count, error } = await supabase
+      .schema('objects')
+      .from('group_memberships')
+      .select('*', { count: 'exact', head: true })
+      .eq('group_id', groupId);
+
+    if (error) {
+      throw new Error(`Failed to get member count for group: ${error.message}`);
+    }
+
+    return count || 0;
+  } catch (error) {
+    console.error('Error getting member count for group:', error);
+    throw error;
+  }
+}
+
+// Get member counts for multiple groups
+export async function getGroupMemberCounts(groupIds: string[]): Promise<Record<string, number>> {
+  const supabase = createClient();
+  
+  try {
+    const { data, error } = await supabase
+      .schema('objects')
+      .from('group_memberships')
+      .select('group_id')
+      .in('group_id', groupIds);
+
+    if (error) {
+      throw new Error(`Failed to get member counts for groups: ${error.message}`);
+    }
+
+    // Count memberships per group
+    const counts: Record<string, number> = {};
+    groupIds.forEach(id => counts[id] = 0);
+    
+    data?.forEach((item: any) => {
+      counts[item.group_id] = (counts[item.group_id] || 0) + 1;
+    });
+
+    return counts;
+  } catch (error) {
+    console.error('Error getting member counts for groups:', error);
+    throw error;
+  }
+}
+
 // Get memberships for a specific user
 export async function getUserGroupMemberships(userId: string): Promise<GroupMembership[]> {
   const supabase = createClient();

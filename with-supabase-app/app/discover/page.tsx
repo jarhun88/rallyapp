@@ -21,7 +21,7 @@ import {
   Plus
 } from "lucide-react";
 import { Group, getGroups } from "@/api/objects/groups";
-import { createGroupMembership, getUserGroupMemberships } from "@/api/objects/groupMemberships";
+import { createGroupMembership, getUserGroupMemberships, getGroupMemberCounts } from "@/api/objects/groupMemberships";
 
 // Mock data for demonstration
 const mockDiscoverGroups = [
@@ -107,6 +107,7 @@ export default function DiscoverPage() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [userMemberships, setUserMemberships] = useState<string[]>([]);
+  const [memberCounts, setMemberCounts] = useState<Record<string, number>>({});
   const router = useRouter();
   const supabase = createClient();
 
@@ -129,6 +130,11 @@ export default function DiscoverPage() {
         const memberships = await getUserGroupMemberships(user.id);
         const membershipIds = memberships.map(m => m.group_id);
         setUserMemberships(membershipIds);
+
+        // Fetch member counts for all groups
+        const groupIds = groupsData.groups.map(g => g.id);
+        const counts = await getGroupMemberCounts(groupIds);
+        setMemberCounts(counts);
 
         setLoading(false);
       } catch (error) {
@@ -157,8 +163,12 @@ export default function DiscoverPage() {
     // Sort groups
     switch (sortBy) {
       case "popular":
-        // Sort by created_at for now since we don't have member count in our schema
-        filtered = filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+        // Sort by member count (most popular first)
+        filtered = filtered.sort((a, b) => {
+          const countA = memberCounts[a.id] || 0;
+          const countB = memberCounts[b.id] || 0;
+          return countB - countA;
+        });
         break;
       case "newest":
         filtered = filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
@@ -169,7 +179,7 @@ export default function DiscoverPage() {
     }
 
     setFilteredGroups(filtered);
-  }, [searchQuery, sortBy, groups]);
+  }, [searchQuery, sortBy, groups, memberCounts]);
 
   const handleJoinGroup = async (groupId: string) => {
     if (!user) return;
@@ -183,6 +193,12 @@ export default function DiscoverPage() {
       // Update local state
       setUserMemberships(prev => [...prev, groupId]);
       
+      // Update member count
+      setMemberCounts(prev => ({
+        ...prev,
+        [groupId]: (prev[groupId] || 0) + 1
+      }));
+      
       alert("Successfully joined the group!");
     } catch (error) {
       console.error('Error joining group:', error);
@@ -195,7 +211,16 @@ export default function DiscoverPage() {
     
     try {
       // TODO: Implement leave group functionality
-      alert("Leave group functionality will be implemented soon!");
+      // For now, just update the local state
+      setUserMemberships(prev => prev.filter(id => id !== groupId));
+      
+      // Update member count
+      setMemberCounts(prev => ({
+        ...prev,
+        [groupId]: Math.max(0, (prev[groupId] || 1) - 1)
+      }));
+      
+      alert("Successfully left the group!");
     } catch (error) {
       console.error('Error leaving group:', error);
       alert("Failed to leave group. Please try again.");
@@ -287,6 +312,7 @@ export default function DiscoverPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredGroups.map((group) => {
             const isJoined = userMemberships.includes(group.id);
+            const memberCount = memberCounts[group.id] || 0;
             
             return (
               <Card key={group.id} className="p-6 hover:shadow-lg transition-shadow">
@@ -320,7 +346,7 @@ export default function DiscoverPage() {
                   <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
                     <div className="flex items-center gap-1">
                       <Users className="h-4 w-4" />
-                      Group
+                      {memberCount} member{memberCount !== 1 ? 's' : ''}
                     </div>
                   </div>
                 </div>

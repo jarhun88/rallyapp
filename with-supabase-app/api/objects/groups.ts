@@ -208,3 +208,25 @@ export async function deleteGroup(groupId: string): Promise<void> {
     throw error;
   }
 }
+
+
+// create group with admin
+export async function createGroupWithAdmin(
+  name: string,
+  description: string,
+  adminUserId: string
+) {
+  const supabase = createClient();
+  console.log('Creating group with admin:', name, description, adminUserId);
+
+  const { data, error } = await supabase.schema('objects').rpc('create_group_with_admin', {
+    p_name: name,
+    p_description: description,
+    p_admin_user_id: adminUserId,
+  })
+
+  if (error) {
+    throw error
+  }
+  return data 
+}
