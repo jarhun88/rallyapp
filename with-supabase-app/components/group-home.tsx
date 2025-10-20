@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { EventCard } from "@/components/ui/event-card";
 import { Tabs } from "@/components/ui/tabs";
+import { getGroupMembersWithUserData } from "@/api/objects/groupMemberships";
+import { createClient } from "@/lib/supabase/client";
 import { 
   Users, 
   Calendar, 
@@ -13,7 +15,8 @@ import {
   Globe, 
   Plus,
   Settings,
-  Crown
+  Crown,
+  Search
 } from "lucide-react";
 
 interface Group {
@@ -64,12 +67,40 @@ export function GroupHome({
   onEditGroup
 }: GroupHomeProps) {
   const [activeTab, setActiveTab] = useState("home");
+  const [members, setMembers] = useState<any[]>([]);
+  const [membersLoading, setMembersLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const upcomingEvents = events.filter(e => 
     e.status === 'published' && new Date(e.eventDate) > new Date()
   );
   const pastEvents = events.filter(e => 
     e.status === 'completed' || new Date(e.eventDate) <= new Date()
+  );
+
+  const fetchMembers = async () => {
+    setMembersLoading(true);
+    try {
+      const membersWithUserData = await getGroupMembersWithUserData(group.id);
+      setMembers(membersWithUserData);
+    } catch (error) {
+      console.error('Error fetching members:', error);
+    } finally {
+      setMembersLoading(false);
+    }
+  };
+
+  // Load members when members tab is selected
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    if (tab === "members" && members.length === 0) {
+      fetchMembers();
+    }
+  };
+
+  const filteredMembers = members.filter(member =>
+    member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    member.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const renderHomeTab = () => (
@@ -299,7 +330,7 @@ export function GroupHome({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-          Members
+          Members ({members.length})
         </h2>
         {group.isAdmin && (
           <Button variant="outline">
@@ -309,17 +340,81 @@ export function GroupHome({
         )}
       </div>
 
-      <Card className="p-6">
-        <div className="text-center">
-          <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-            Member Management
-          </h3>
-          <p className="text-gray-500 dark:text-gray-400">
-            This feature will be available soon
-          </p>
+      {/* Search */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+        <input
+          type="text"
+          placeholder="Search members..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+        />
+      </div>
+
+      {/* Members List */}
+      {membersLoading ? (
+        <div className="text-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading members...</p>
         </div>
-      </Card>
+      ) : filteredMembers.length === 0 ? (
+        <Card className="p-6">
+          <div className="text-center">
+            <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+              {searchQuery ? 'No members found' : 'No members in this group'}
+            </h3>
+            <p className="text-gray-500 dark:text-gray-400">
+              {searchQuery ? 'Try adjusting your search' : 'Members will appear here when they join'}
+            </p>
+          </div>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredMembers.map((member) => (
+            <Card key={member.id} className="p-4">
+              <div className="flex items-center gap-3">
+                {/* Avatar */}
+                {member.avatar ? (
+                  <img
+                    src={member.avatar}
+                    alt={member.name}
+                    className="h-10 w-10 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                    <span className="text-white text-sm font-medium">
+                      {member.name.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                )}
+
+                {/* Member Info */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                      {member.name}
+                    </p>
+                    {member.isAdmin && (
+                      <Badge variant="secondary" className="text-xs">
+                        <Crown className="h-3 w-3 mr-1" />
+                        Admin
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                    {member.email}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Joined {new Date(member.joinedAt).toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 
@@ -345,7 +440,7 @@ export function GroupHome({
 
   return (
     <div className="space-y-6">
-      <Tabs activeTab={activeTab} onTabChange={setActiveTab} />
+      <Tabs activeTab={activeTab} onTabChange={handleTabChange} />
       
       {activeTab === "home" && renderHomeTab()}
       {activeTab === "events" && renderEventsTab()}
