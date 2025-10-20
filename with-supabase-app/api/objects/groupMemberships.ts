@@ -121,6 +121,27 @@ export async function getGroupMemberCounts(groupIds: string[]): Promise<Record<s
   }
 }
 
+// Delete a group membership (leave group)
+export async function deleteGroupMembership(groupId: string, userId: string): Promise<void> {
+  const supabase = createClient();
+  
+  try {
+    const { error } = await supabase
+      .schema('objects')
+      .from('group_memberships')
+      .delete()
+      .eq('group_id', groupId)
+      .eq('user_id', userId);
+
+    if (error) {
+      throw new Error(`Failed to delete group membership: ${error.message}`);
+    }
+  } catch (error) {
+    console.error('Error deleting group membership:', error);
+    throw error;
+  }
+}
+
 // Get memberships for a specific user
 export async function getUserGroupMemberships(userId: string): Promise<GroupMembership[]> {
   const supabase = createClient();
@@ -148,26 +169,6 @@ export async function getUserGroupMemberships(userId: string): Promise<GroupMemb
   }
 }
 
-// Delete a group membership
-export async function deleteGroupMembership(userId: string, groupId: string): Promise<void> {
-  const supabase = createClient();
-  
-  try {
-    const { error } = await supabase
-      .schema('objects')
-      .from('group_memberships')
-      .delete()
-      .eq('user_id', userId)
-      .eq('group_id', groupId);
-
-    if (error) {
-      throw new Error(`Failed to delete group membership: ${error.message}`);
-    }
-  } catch (error) {
-    console.error('Error deleting group membership:', error);
-    throw error;
-  }
-}
 
 // Check if a user is a member of a group
 export async function isUserMemberOfGroup(userId: string, groupId: string): Promise<boolean> {

@@ -21,7 +21,7 @@ import {
   Plus
 } from "lucide-react";
 import { Group, getGroups } from "@/api/objects/groups";
-import { createGroupMembership, getUserGroupMemberships, getGroupMemberCounts } from "@/api/objects/groupMemberships";
+import { createGroupMembership, getUserGroupMemberships, getGroupMemberCounts, deleteGroupMembership } from "@/api/objects/groupMemberships";
 
 // Mock data for demonstration
 const mockDiscoverGroups = [
@@ -108,6 +108,8 @@ export default function DiscoverPage() {
   const [loading, setLoading] = useState(true);
   const [userMemberships, setUserMemberships] = useState<string[]>([]);
   const [memberCounts, setMemberCounts] = useState<Record<string, number>>({});
+  const [joiningGroup, setJoiningGroup] = useState<string | null>(null);
+  const [leavingGroup, setLeavingGroup] = useState<string | null>(null);
   const router = useRouter();
   const supabase = createClient();
 
@@ -184,6 +186,7 @@ export default function DiscoverPage() {
   const handleJoinGroup = async (groupId: string) => {
     if (!user) return;
     
+    setJoiningGroup(groupId);
     try {
       await createGroupMembership({
         group_id: groupId,
@@ -199,19 +202,22 @@ export default function DiscoverPage() {
         [groupId]: (prev[groupId] || 0) + 1
       }));
       
-      alert("Successfully joined the group!");
     } catch (error) {
       console.error('Error joining group:', error);
       alert("Failed to join group. Please try again.");
+    } finally {
+      setJoiningGroup(null);
     }
   };
 
   const handleLeaveGroup = async (groupId: string) => {
     if (!user) return;
     
+    setLeavingGroup(groupId);
     try {
-      // TODO: Implement leave group functionality
-      // For now, just update the local state
+      await deleteGroupMembership(groupId, user.id);
+      
+      // Update local state
       setUserMemberships(prev => prev.filter(id => id !== groupId));
       
       // Update member count
@@ -224,6 +230,8 @@ export default function DiscoverPage() {
     } catch (error) {
       console.error('Error leaving group:', error);
       alert("Failed to leave group. Please try again.");
+    } finally {
+      setLeavingGroup(null);
     }
   };
 
@@ -357,17 +365,19 @@ export default function DiscoverPage() {
                       variant="outline"
                       size="sm"
                       onClick={() => handleLeaveGroup(group.id)}
+                      disabled={leavingGroup === group.id}
                       className="flex-1"
                     >
-                      Leave Group
+                      {leavingGroup === group.id ? "Leaving..." : "Leave Group"}
                     </Button>
                   ) : (
                     <Button
                       size="sm"
                       onClick={() => handleJoinGroup(group.id)}
+                      disabled={joiningGroup === group.id}
                       className="flex-1"
                     >
-                      Join Group
+                      {joiningGroup === group.id ? "Joining..." : "Join Group"}
                     </Button>
                   )}
                   <Button variant="ghost" size="sm">
